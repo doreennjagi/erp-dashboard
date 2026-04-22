@@ -1,4 +1,5 @@
 import pandas as pd
+import json
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from .forms import FileUploadForm
@@ -9,9 +10,7 @@ def upload_file(request):
     columns = None
     error = None
     kpis = None
-    chart_labels = None
-    chart_income = None
-    chart_expenses = None
+    chart_data = None
 
     if request.method == 'POST':
         form = FileUploadForm(request.POST, request.FILES)
@@ -35,7 +34,6 @@ def upload_file(request):
                 uploaded.processed = True
                 uploaded.save()
 
-                # Calculate KPIs if Type and Amount columns exist
                 if 'Type' in df.columns and 'Amount' in df.columns:
                     df['Amount'] = pd.to_numeric(df['Amount'], errors='coerce').fillna(0)
                     total_income = df[df['Type'] == 'Income']['Amount'].sum()
@@ -49,7 +47,6 @@ def upload_file(request):
                         'balance_positive': balance >= 0,
                     }
 
-                    # Chart data by month
                     if 'Date' in df.columns:
                         df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
                         df['Month'] = df['Date'].dt.strftime('%b %Y')
@@ -58,9 +55,11 @@ def upload_file(request):
                         income_by_month = df[df['Type'] == 'Income'].groupby('Month')['Amount'].sum()
                         expense_by_month = df[df['Type'] == 'Expense'].groupby('Month')['Amount'].sum()
 
-                        chart_labels = months
-                        chart_income = [income_by_month.get(m, 0) for m in months]
-                        chart_expenses = [expense_by_month.get(m, 0) for m in months]
+                        chart_data = json.dumps({
+                            'labels': months,
+                            'income': [float(income_by_month.get(m, 0)) for m in months],
+                            'expenses': [float(expense_by_month.get(m, 0)) for m in months],
+                        })
 
             except Exception as e:
                 error = f"Could not read file: {str(e)}"
@@ -73,7 +72,5 @@ def upload_file(request):
         'columns': columns,
         'error': error,
         'kpis': kpis,
-        'chart_labels': chart_labels,
-        'chart_income': chart_income,
-        'chart_expenses': chart_expenses,
+        'chart_data': chart_data,
     })
