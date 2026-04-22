@@ -8,6 +8,10 @@ def upload_file(request):
     data = None
     columns = None
     error = None
+    kpis = None
+    chart_labels = None
+    chart_income = None
+    chart_expenses = None
 
     if request.method == 'POST':
         form = FileUploadForm(request.POST, request.FILES)
@@ -19,15 +23,45 @@ def upload_file(request):
             uploaded.file_name = file.name
             uploaded.file_type = 'csv' if ext == 'csv' else 'excel'
             uploaded.save()
+
             try:
                 if ext == 'csv':
                     df = pd.read_csv(uploaded.file.path)
                 else:
                     df = pd.read_excel(uploaded.file.path)
+
                 columns = df.columns.tolist()
                 data = df.head(50).values.tolist()
                 uploaded.processed = True
                 uploaded.save()
+
+                # Calculate KPIs if Type and Amount columns exist
+                if 'Type' in df.columns and 'Amount' in df.columns:
+                    df['Amount'] = pd.to_numeric(df['Amount'], errors='coerce').fillna(0)
+                    total_income = df[df['Type'] == 'Income']['Amount'].sum()
+                    total_expenses = df[df['Type'] == 'Expense']['Amount'].sum()
+                    balance = total_income - total_expenses
+
+                    kpis = {
+                        'total_income': f"{total_income:,.0f}",
+                        'total_expenses': f"{total_expenses:,.0f}",
+                        'balance': f"{balance:,.0f}",
+                        'balance_positive': balance >= 0,
+                    }
+
+                    # Chart data by month
+                    if 'Date' in df.columns:
+                        df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
+                        df['Month'] = df['Date'].dt.strftime('%b %Y')
+                        months = df['Month'].dropna().unique().tolist()
+
+                        income_by_month = df[df['Type'] == 'Income'].groupby('Month')['Amount'].sum()
+                        expense_by_month = df[df['Type'] == 'Expense'].groupby('Month')['Amount'].sum()
+
+                        chart_labels = months
+                        chart_income = [income_by_month.get(m, 0) for m in months]
+                        chart_expenses = [expense_by_month.get(m, 0) for m in months]
+
             except Exception as e:
                 error = f"Could not read file: {str(e)}"
     else:
@@ -38,4 +72,8 @@ def upload_file(request):
         'data': data,
         'columns': columns,
         'error': error,
+        'kpis': kpis,
+        'chart_labels': chart_labels,
+        'chart_income': chart_income,
+        'chart_expenses': chart_expenses,
     })
