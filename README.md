@@ -224,19 +224,30 @@ pip install -r requirements.txt
 
 ## 👩‍💻 Author
 
-**Doreen Njagi**
+**Doreen Njagi**  
 Odoo Consultant & Data Analyst
 
 - GitHub: [@doreennjagi](https://github.com/doreennjagi)
 
 ---
 
-## 📄 License
+## 📄 License & Intellectual Property
 
-This project is open source and available under the [MIT License](LICENSE).
+**Copyright © 2025 Doreen Njagi. All Rights Reserved.**
 
----
+This software and its source code are the **exclusive intellectual property** of Doreen Njagi.
 
-## 🤝 Contributing
+**You may NOT:**
+- Copy, reproduce, or redistribute this software or any part of it
+- Use this software or its concepts for commercial purposes without written permission
+- Modify, adapt, or build upon this work without explicit written consent
+- Sublicense or sell access to this software
 
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+**You MAY:**
+- View the source code for personal learning purposes only
+
+This project is **not open source**. Viewing this repository does not grant any rights to use, copy, or distribute the code or its underlying concepts.
+
+For licensing, partnership, or commercial use inquiries, contact the author directly via GitHub.
+
+> ⚠️ Unauthorized use of this software is a violation of copyright law and will be pursued accordingly.
